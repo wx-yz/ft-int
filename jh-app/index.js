@@ -1,9 +1,8 @@
 import got from 'got'
-
-// const express = require('express')
 import express from 'express'
 import * as url from 'url';
 import crypto from 'crypto';
+import prettier from 'prettier';
 
 const app = express()
 const port = 8080
@@ -40,14 +39,20 @@ app.get('/dynamic', (req, res) => {
     console.log("inside /dynamic, got code: " + req.query.code)
     const options = {
         headers: {
-            'Authorization': 'Bearer eyJ4NXQiOiJNekkwTm1ZeU5tWXpabU5tTmpoaU16UmlNRGt4TlRnME1UYzNNRGt6WlRZd1lUQmtZMlF5TURZelpESmxNVGN6TWpNeE1HVmxNVEF5TWpJM1l6WXhNQSIsImtpZCI6Ik16STBObVl5Tm1ZelptTm1OamhpTXpSaU1Ea3hOVGcwTVRjM01Ea3paVFl3WVRCa1kyUXlNRFl6WkRKbE1UY3pNak14TUdWbE1UQXlNakkzWXpZeE1BX1JTMjU2IiwidHlwIjoiYXQrand0IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJmMmEwZmU4YS05YjBhLTQxMTMtYjBlMS0xNGRlNTE3MWQ5N2IiLCJhdXQiOiJBUFBMSUNBVElPTiIsImF1ZCI6WyJRSWVCYjJuYndEVnZFMVdMdWRlUnVxSFRmQ1VhIiwiY2hvcmVvOmRlcGxveW1lbnQ6cHJvZHVjdGlvbiJdLCJuYmYiOjE2ODMwNTQ2ODQsImF6cCI6IlFJZUJiMm5id0RWdkUxV0x1ZGVSdXFIVGZDVWEiLCJpc3MiOiJodHRwczpcL1wvYXBpLmFzZ2FyZGVvLmlvXC90XC9jaGludGFuYXdpbGFtdW5hXC9vYXV0aDJcL3Rva2VuIiwiZXhwIjoxNjgzMDU4Mjg0LCJpYXQiOjE2ODMwNTQ2ODQsImp0aSI6IjRlMWE2MTc3LWIxYTctNDJlMC1iNDk3LWM0YWQzOWE2NjdhOCIsImNsaWVudF9pZCI6IlFJZUJiMm5id0RWdkUxV0x1ZGVSdXFIVGZDVWEifQ.X0VjKrcAYUI_JRSeMM9WqpEm8wPAnl2g-Xfl_6LAA1oMSfrQ8yuuYa0sZ-rM5LOjYvElHK5j9JZdw9D7mVHp-epBBKj-e1OgUi8vgykX66zzIbBCrtSiSGQmk7X3pDkf0ilE-6PVOTEc9Bjl-lxBrvWUDn58MEHi6KgHE9NOKwc6zoyRYOt1hP5N5-IWx-K9NsyT9VJ_1eMfvi3aooZpcbQYpuWwVv8CMTqldDypacQBf_UJJhEVy5-b1_lQe3hQy2hq5IRui7knc30FbBE1k96500QQRhkHCDMQXcsBNlB_nFAoeT3Ud_nVLTFkd-2U1u0X-hXP3lL-V9ey1XMlbA'
+            'Authorization': 'Bearer eyJ4NXQiOiJNekkwTm1ZeU5tWXpabU5tTmpoaU16UmlNRGt4TlRnME1UYzNNRGt6WlRZd1lUQmtZMlF5TURZelpESmxNVGN6TWpNeE1HVmxNVEF5TWpJM1l6WXhNQSIsImtpZCI6Ik16STBObVl5Tm1ZelptTm1OamhpTXpSaU1Ea3hOVGcwTVRjM01Ea3paVFl3WVRCa1kyUXlNRFl6WkRKbE1UY3pNak14TUdWbE1UQXlNakkzWXpZeE1BX1JTMjU2IiwidHlwIjoiYXQrand0IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJmMmEwZmU4YS05YjBhLTQxMTMtYjBlMS0xNGRlNTE3MWQ5N2IiLCJhdXQiOiJBUFBMSUNBVElPTiIsImF1ZCI6IkcxbFVrV3VxOXduU1VBbHg2bjBhQW0xQUJvMGEiLCJuYmYiOjE2ODMxMzc5MDMsImF6cCI6IkcxbFVrV3VxOXduU1VBbHg2bjBhQW0xQUJvMGEiLCJpc3MiOiJodHRwczpcL1wvYXBpLmFzZ2FyZGVvLmlvXC90XC9jaGludGFuYXdpbGFtdW5hXC9vYXV0aDJcL3Rva2VuIiwiZXhwIjoxNjgzMTQxNTAzLCJpYXQiOjE2ODMxMzc5MDMsImp0aSI6ImQyMTI1YzFiLWFhZWUtNDIyYi04NTAzLTY4OGUxNjgyNjQwMSIsImNsaWVudF9pZCI6IkcxbFVrV3VxOXduU1VBbHg2bjBhQW0xQUJvMGEifQ.AqCjwS5x-yr4gBraWgmwQ5FJ48l3ptX88Grd_61OmpyNrad42qZVn0tf6__RzFViloOsoM0Z_Z0HVqoa0p9jzfIS02h7IkdsFIZBYFYx-Z7cJWWpC-QIzG158BSFIgxQIEFBtmpA58WEP9WdWTeh7UrCIB8_-GN73mIxUaMO_WL_D4BLSlOTijiHhQbeJmlpeKa_L9kZvzPK4ewNNQt5bngyQJtRPiLXu4rfVE7zsjo6KwDv1mEJtv4SsqgG8bTr5nWnEf5LoQybT49eg2hbGc5p7qS08yI_kwWfNmJdJZz34YpO16UZdMsFpKQ0JWYJJSQstOBDiC2km8wT76USxw'
         }
     }
-    const url = `https://9d41cb15-8572-45fc-b493-02da2b5c12a4-dev.e1-us-east-azure.choreoapis.dev/xmqq/accountsdetails/1.0.0/users/chintana/accounts&client_id=${clientID}&redirect_uri=${redirectURI}&code_verifier=${codeVerifier}`
-    const {data} = got.get(url, options);
-    console.log("data: " + JSON.stringify(data))
-    res.send(data)
-    // res.send('<html><head><link rel="stylesheet" type="text/css" href="/style.css" /></head><body><h1>Dynamic</h1><p>Code: ' + req.query.code + '</p><p>State: ' + req.query.state + '</p></body></html>')
+    var url = `https://9d41cb15-8572-45fc-b493-02da2b5c12a4-dev.e1-us-east-azure.choreoapis.dev/wrrg/accountsdetails2/1.0.0/users/b9e0e57f-0d36-4f55-a189-7e0b295bd160/accounts?client_id=${clientID}&redirect_uri=${redirectURI}&code_verifier=${codeVerifier}&code=${req.query.code}`
+    try {
+        var data = got.get(url, options).then(response => {
+            console.log(response.body)
+            var prettyRes = prettier.format(response.body, { parser: "json" })
+            res.send('<html><head><link rel="stylesheet" type="text/css" href="/style.css" /></head><body><h1>Dynamic</h1><p>Code: <code>' + req.query.code + '</code></p><p>Response: <pre>' + prettyRes + '</pre></p></body></html>')
+        })
+    } catch (error) {
+        console.log("error: " + error)
+    }    
+    // res.send('<html><head><link rel="stylesheet" type="text/css" href="/style.css" /><link rel=stylesheet href="https://cdn.jsdelivr.net/npm/pretty-print-json@2.0/dist/css/pretty-print-json.css"/><script src=https://cdn.jsdelivr.net/npm/pretty-print-json@2.0/dist/pretty-print-json.min.js></script></head><body><h1>Dynamic</h1><p>Code: ' + req.query.code + '</p><p>State: ' + req.query.state + '</p></body></html>')
 
 })
 

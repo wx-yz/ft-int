@@ -12,6 +12,8 @@
   "dependencies": {
     "express": "^4.18.2",
     "got": "^12.6.0",
+    "prettier": "^2.8.8",
+    "pretty-print-json": "^2.0.1",
     "request": "^2.88.2"
   }
 }

@@ -2,6 +2,7 @@ import ballerina/http;
 import choreo/mediation;
 import ballerina/mime;
 import ballerina/log;
+import ballerina/url;
 
 string tokenEndpoint = "https://digital.garden-fi.com";
 
@@ -19,7 +20,8 @@ public function policyNameIn(mediation:Context ctx, http:Request req, string con
     log:printInfo("Auth Code: " + authCode);
 
     string redirectUri = req.getQueryParamValue("redirect_uri") ?: "";
-    log:printInfo("Redirect URI: " + redirectUri);
+    string redirectUriEnc = check url:encode(redirectUri, "UTF-8");
+    log:printInfo("Redirect URI: " + redirectUriEnc);
 
     string codeVerifier = req.getQueryParamValue("code_verifier") ?: "";
     log:printInfo("Code Verifier: " + codeVerifier);
@@ -31,11 +33,9 @@ public function policyNameIn(mediation:Context ctx, http:Request req, string con
     string tokenPayload = "client_id=" + clientId +
         "&grant_type=authorization_code" +
         "&code=" + authCode +
-        "&redirect_uri=" + redirectUri +
+        "&redirect_uri=" + redirectUriEnc +
         "&code_verifier=" + codeVerifier +
-        "&client_secret=" + consumerSecret +
-        "&redirect_uri=" + redirectUri +
-        "&code_verifier=" + codeVerifier;
+        "&client_secret=" + consumerSecret;
 
     http:Client tokenClient = check new(tokenEndpoint);
     http:Request tokenReq = new;

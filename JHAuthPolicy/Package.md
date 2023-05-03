@@ -1,4 +1,4 @@
-# JHAuthPolicy
+# AuthJH
 
 ## Overview
 
